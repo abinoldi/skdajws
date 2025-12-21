@@ -1,6 +1,30 @@
 -- =================================================================
 -- KAITUN STANDALONE WINDUI VERSION (Complete Standalone)
 -- =================================================================
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "SynceHub - Fish It",
+    Icon = "rbxassetid://130348378128532",
+    Author = "Freemium Script",
+    Folder = "SynceHub",
+    Size = UDim2.fromOffset(600, 360),
+    MinSize = Vector2.new(560, 250),
+    MaxSize = Vector2.new(950, 760),
+    Transparent = false,
+    Theme = "Sky",
+    Resizable = true,
+    SideBarWidth = 190,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar = true,
+    ScrollBarEnabled = true,
+})
+
+Window:Tag({
+    Title = "Stable Version",
+    Icon = "bird",
+    Color = Color3.fromHex("#FFFFFF"),
+    Radius = 11,
+})
 
 -- Check if WindUI exists, if not create a basic implementation
 local WindUI = _G.WindUI or {}

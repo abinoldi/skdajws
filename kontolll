@@ -1,6 +1,8 @@
 -- =================================================================
 -- KAITUN STANDALONE WINDUI VERSION (Complete Standalone)
 -- =================================================================
+repeat task.wait() until game:IsLoaded()
+
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
     Title = "SynceHub - Fish It",
@@ -32,42 +34,52 @@ local Window = _G.Window or {}
 
 -- Create a fallback implementation if WindUI/Window doesn't exist
 if not _G.WindUI then
-    print("WindUI not found, using fallback implementation")
-    
-    -- Create basic fallback functions
-    WindUI.Notify = function(args)
-        print("[NOTIFICATION] " .. (args.Title or "Notification") .. ": " .. (args.Content or args.Title or ""))
+    _G.WindUI = {}
+
+    function _G.WindUI.Notify(args)
+        print("[WindUI]", args.Title or "", args.Content or "")
     end
-    
-    -- Create a mock Window structure if it doesn't exist
-    if not _G.Window then
-        _G.Window = {}
-        _G.Window.Tab = function(tabData)
-            print("Creating tab: " .. (tabData.Title or "Unknown"))
-            return {
-                Section = function(sectionData)
-                    print("Creating section: " .. (sectionData.Title or "Unknown"))
-                    return {
-                        Toggle = function(toggleData)
-                            print("Creating toggle: " .. (toggleData.Title or "Unknown"))
-                            return {Value = toggleData.Value or false}
-                        end
-                    }
-                end,
-                Divider = function()
-                    print("Creating divider")
+end
+
+if not _G.Window then
+    _G.Window = {}
+
+    function _G.Window.Tab(tabData)
+        local tab = {}
+
+        function tab.Section(sectionData)
+            local section = {}
+
+            function section.Toggle(toggleData)
+                local t = {
+                    Value = toggleData.Value or false
+                }
+
+                if toggleData.Callback then
+                    task.spawn(function()
+                        toggleData.Callback(t.Value)
+                    end)
                 end
-            }
+
+                return t
+            end
+
+            return section
         end
+
+        function tab.Divider() end
+        return tab
     end
-    
-    -- Create Reg function if it doesn't exist
-    if not _G.Reg then
-        _G.Reg = function(key, obj)
-            print("Registering: " .. key)
-            return obj
-        end
+end
+
+if not _G.Reg then
+    local store = {}
+    function _G.Reg(key, obj)
+        store[key] = obj
+        return obj
     end
+end
+
 else
     WindUI = _G.WindUI
 end
@@ -104,7 +116,7 @@ end
 -- Only run the main script if Window exists
 if _G.Window then
     -- Create the main tab
-    local premium = _G.Window:Tab({
+    local premium = _G.Window.Tab({
         Title = "Premium",
         Icon = "star",
         Locked = false,
@@ -432,7 +444,7 @@ if _G.Window then
             if currentCoins >= 1000 then
                 pcall(function() RF_PurchaseBait:InvokeServer(2) end)
                 if _G.WindUI then
-                    WindUI:Notify({ Title = "Kaitun Strategy", Content = "Membeli Luck Bait (Multiplier Boost)", Duration = 2, Icon = "shopping-cart" })
+                    WindUI.Notify({ Title = "Kaitun Strategy", Content = "Membeli Luck Bait (Multiplier Boost)", Duration = 2, Icon = "shopping-cart" })
                 else
                     print("[Kaitun] Membeli Luck Bait (Multiplier Boost)")
                 end
@@ -446,7 +458,7 @@ if _G.Window then
             if currentCoins >= 3000 then
                 pcall(function() RF_PurchaseBait:InvokeServer(3) end)
                 if _G.WindUI then
-                    WindUI:Notify({ Title = "Membeli Midnight Bait", Duration = 2, Icon = "shopping-cart" })
+                    WindUI.Notify({ Title = "Membeli Midnight Bait", Duration = 2, Icon = "shopping-cart" })
                 else
                     print("[Kaitun] Membeli Midnight Bait")
                 end
@@ -867,8 +879,8 @@ if _G.Window then
     -- =================================================================
     -- [UI CONTROLS]
     -- =================================================================
-    local kaitun = premium:Section({ Title = "Kaitun Mode", TextSize = 20})
-    local tkaitun = _G.Reg("kaitunt",kaitun:Toggle({
+    local kaitun = premium.Section({ Title = "Kaitun Mode", TextSize = 20})
+    local tkaitun = _G.Reg("kaitunt",kaitun.Toggle({
         Title = "Start Auto Kaitun (Full AFK)",
         Desc = "Auto Farm -> Buy Rods -> Auto Buy Bait -> Auto Quests.",
         Value = false,
@@ -876,7 +888,7 @@ if _G.Window then
             KAITUN_ACTIVE = state
             if state then
                 if _G.WindUI then
-                    WindUI:Notify({ Title = "Kaitun Started",Duration = 3, Icon = "play" })
+                    .Notify({ Title = "Kaitun Started",Duration = 3, Icon = "play" })
                 else
                     print("[Kaitun] Started - Auto Farm -> Buy Rods -> Auto Buy Bait -> Auto Quests.")
                 end
@@ -888,7 +900,7 @@ if _G.Window then
                 if KAITUN_OVERLAY then KAITUN_OVERLAY:Destroy() end
                 pcall(function() RE_EquipToolFromHotbar:FireServer(0) end)
                 if _G.WindUI then
-                    WindUI:Notify({ Title = "Kaitun Stopped", Duration = 2, Icon = "square" })
+                    WindUI.Notify({ Title = "Kaitun Stopped", Duration = 2, Icon = "square" })
                 else
                     print("[Kaitun] Stopped")
                 end
@@ -896,7 +908,7 @@ if _G.Window then
         end
     }))
 
-    premium:Divider()
+    premium.Divider()
 end -- Close the initial check for Window
 
 -- If Window doesn't exist, run the standalone version directly
